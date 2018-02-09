@@ -12,13 +12,6 @@ Models
    :members:
    :show-inheritance:
 
-Validators
-----------
-
-.. automodule:: shared.rest_validators
-   :members:
-   :show-inheritance:
-
 Views
 -----
 
@@ -44,5 +37,12 @@ Exceptions
 ----------
 
 .. automodule:: shared.exceptions
+   :members:
+   :show-inheritance:
+
+Validators
+----------
+
+.. automodule:: shared.rest_validators
    :members:
    :show-inheritance:
