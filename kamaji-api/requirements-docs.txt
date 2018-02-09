@@ -1,0 +1,2 @@
+-r requirements.txt
+sphinx-bootstrap-theme==0.6.4
