@@ -1,0 +1,342 @@
+# Configuration file for dev01
+api_settings:
+  api_user: kamajiapi
+  default_password: admin
+  default_username: admin
+  setting: api.settings.production
+celery_settings:
+  concurrency: 4
+  time_limit: 300
+environment_mode: vagrant
+firewall_settings:
+  kamaji-api:
+    protocols:
+      tcp:
+      - 80
+      - 443
+    target: vip
+haproxy_settings:
+  mariadb_username: haproxy_check
+keepalived_settings:
+  advert_interval: 1
+  password: tvqCoed3APdn2L3rP^NR
+mariadb_settings:
+  databases:
+  - glance
+  - keystone
+  - nova
+  - neutron
+  - cinder
+  - kamaji
+  - powerdns
+  root_password: (IyPMTc&89qO^t0afOCR
+  users:
+    cinder:
+      database: cinder
+      password: HInJH^FksO5Mrds)9^Lh
+    glance:
+      database: glance
+      password: '&wRDCK475fX)kh4RbpN6'
+    kamaji:
+      database: kamaji
+      password: KFwoZtDvmavTHBezYx7k
+    keystone:
+      database: keystone
+      password: (h5iIhJa!1zd23aIKayF
+    neutron:
+      database: neutron
+      password: LNh*urLAjHrW(ySPjJ3W
+    nova:
+      database: nova
+      password: (Ro^XgO%!BwAJ^^yb6fS
+    powerdns:
+      database: powerdns
+      password: ip@*H8UlHoDaJIbt(*v5
+openstack_settings:
+  admin_token: H8wKiNnEhl9FKOwldQrz
+  endpoints:
+    compute:
+      admin_url: nova.service.{{ service_settings['domain'] }}:8774/v2/%\(tenant_id\)s
+      internal_url: nova.service.{{ service_settings['domain'] }}:8774/v2/%\(tenant_id\)s
+      public_url: nova.service.{{ service_settings['domain'] }}:8774/v2/%\(tenant_id\)s
+    identity:
+      admin_url: keystoneadmin.service.{{ service_settings['domain'] }}:35357/v3
+      internal_url: keystone.service.{{ service_settings['domain'] }}:5000/v3
+      public_url: keystone.service.{{ service_settings['domain'] }}:5000/v3
+    image:
+      admin_url: glance.service.{{ service_settings['domain'] }}:9292
+      internal_url: glance.service.{{ service_settings['domain'] }}:9292
+      public_url: glance.service.{{ service_settings['domain'] }}:9292
+    neutron:
+      admin_url: neutron.service.{{ service_settings['domain'] }}:9696
+      internal_url: neutron.service.{{ service_settings['domain'] }}:9696
+      public_url: neutron.service.{{ service_settings['domain'] }}:9696
+    volume:
+      admin_url: cinder.service.{{ service_settings['domain'] }}:8776/v1/%\(tenant_id\)s
+      internal_url: cinder.service.{{ service_settings['domain'] }}:8776/v1/%\(tenant_id\)s
+      public_url: cinder.service.{{ service_settings['domain'] }}:8776/v1/%\(tenant_id\)s
+    volumev2:
+      admin_url: cinder.service.{{ service_settings['domain'] }}:8776/v2/%\(tenant_id\)s
+      internal_url: cinder.service.{{ service_settings['domain'] }}:8776/v2/%\(tenant_id\)s
+      public_url: cinder.service.{{ service_settings['domain'] }}:8776/v2/%\(tenant_id\)s
+  metadata_secret: WiBnHrEePWrOJzhvQcKj
+  protocol: http://
+  region: kamaji
+  services:
+    cinder:
+      description: OpenStack Block Storage
+      type: volume
+    cinderv2:
+      description: OpenStack Block Storage
+      type: volumev2
+    glance:
+      description: OpenStack Image service
+      type: image
+    keystone:
+      description: OpenStack Identity
+      type: identity
+    neutron:
+      description: OpenStack Networking
+      type: network
+    nova:
+      description: OpenStack Compute
+      type: compute
+  users:
+    admin:
+      password: 8Kftayvz!YwMlLKp0vCl
+      project: admin
+      role: admin
+    cinder:
+      password: '!O3EDptrbJDr@LTnHdrE'
+      project: service
+      role: admin
+    glance:
+      password: j4yC2rD!v^SaxyJEa3On
+      project: service
+      role: admin
+    neutron:
+      password: KB60GI(*JncR8pT9y!YK
+      project: service
+      role: admin
+    nova:
+      password: KKDhL(fzRGUtLhLK^mtQ
+      project: service
+      role: admin
+powerdns_settings:
+  api_key: fePFZGfb6ud(0wN(Aleb
+  protocol: http://
+  recursor_port: 5353
+rabbitmq_settings:
+  users:
+    celery:
+      password: '!FEIfRgoZ(N*%e&OMPh4'
+    openstack:
+      password: Vv2j0AqrQQmSgtqE)JxP
+service_applications:
+  applications:
+    api:
+      backend: web
+      options:
+      - httpchk GET / HTTP/1.1\r\nHost:\ haproxy
+      port: 80
+    cinder:
+      backend: osc
+      options:
+      - tcpka
+      - httpchk
+      - tcplog
+      port: 8776
+    db:
+      backend: db
+      mode: tcp
+      port: 3306
+    glance:
+      backend: osc
+      options:
+      - tcpka
+      - httpchk
+      - tcplog
+      port: 9292
+    glanceregistry:
+      backend: osc
+      options:
+      - tcpka
+      - tcplog
+      port: 9191
+    keystone:
+      backend: osc
+      options:
+      - tcpka
+      - httpchk
+      - tcplog
+      port: 5000
+    keystoneadmin:
+      backend: osc
+      options:
+      - tcpka
+      - httpchk
+      - tcplog
+      port: 35357
+    memcached:
+      backend: osc
+      backup: true
+      mode: tcp
+      port: 11211
+    neutron:
+      backend: osc
+      options:
+      - tcpka
+      - httpchk
+      - tcplog
+      port: 9696
+    nova:
+      backend: osc
+      options:
+      - tcpka
+      - httpchk
+      - tcplog
+      port: 8774
+    novametadata:
+      backend: osc
+      options:
+      - tcpka
+      - tcplog
+      port: 8775
+    novncproxy:
+      backend: osc
+      options:
+      - tcpka
+      - tcplog
+      port: 6080
+    powerdns-api:
+      backend: ns
+      options:
+      - httpchk
+      port: 8081
+    boot-web:
+      backend: boot
+      options:
+      - httpchk GET / HTTP/1.1\r\nHost:\ haproxy
+      port: 8080
+  vip_ipv4_address: 10.192.6.4
+service_containers:
+  boot:
+    lxd_options:
+    - boot.autostart=true
+    network: flat
+  db:
+    lxd_options:
+    - boot.autostart=true
+    - boot.autostart.priority=5
+    network: flat
+  lb:
+    lxd_options:
+    - boot.autostart=true
+    network: flat
+  mq:
+    lxd_options:
+    - boot.autostart=true
+    network: flat
+  ns:
+    lxd_options:
+    - boot.autostart=true
+    network: flat
+  osc:
+    lxd_options:
+    - boot.autostart=true
+    network: flat
+  osn:
+    lxd_options:
+    - boot.autostart=true
+    network: flat
+  web:
+    network: flat
+service_networks:
+  flat:
+    ipv4_gateway: 10.192.6.1
+    ipv4_netmask: 255.255.255.192
+    ipv4_prefix: 26
+    ipv4_subnet: 10.192.6.0
+    vlan: 0
+service_nodes:
+  '01':
+    containers:
+      boot:
+        ipv4_address: 10.192.6.12
+        mac_address: 52:54:00:5d:0b:5c
+      db:
+        ipv4_address: 10.192.6.7
+        mac_address: 52:54:00:00:20:2a
+      lb:
+        ipv4_address: 10.192.6.5
+        mac_address: 52:54:00:07:7a:54
+      mq:
+        ipv4_address: 10.192.6.6
+        mac_address: 52:54:00:03:7b:6b
+      ns:
+        ipv4_address: 10.192.6.8
+        mac_address: 52:54:00:69:fe:ff
+      osc:
+        ipv4_address: 10.192.6.10
+        mac_address: '52:54:00:04:09:06'
+      osn:
+        ipv4_address: 10.192.6.11
+        mac_address: 52:54:00:4a:40:33
+      web:
+        ipv4_address: 10.192.6.9
+        mac_address: 52:54:00:30:9f:ad
+    interfaces:
+    - eth1
+    ipv4_address: 10.192.6.2
+  '02':
+    containers:
+      boot:
+        ipv4_address: 10.192.6.20
+        mac_address: 52:54:00:22:b7:31
+      db:
+        ipv4_address: 10.192.6.15
+        mac_address: 52:54:00:0f:fb:06
+      lb:
+        ipv4_address: 10.192.6.13
+        mac_address: 52:54:00:78:a3:df
+      mq:
+        ipv4_address: 10.192.6.14
+        mac_address: 52:54:00:38:6c:ed
+      ns:
+        ipv4_address: 10.192.6.16
+        mac_address: 52:54:00:11:64:40
+      osc:
+        ipv4_address: 10.192.6.18
+        mac_address: 52:54:00:06:bf:83
+      osn:
+        ipv4_address: 10.192.6.19
+        mac_address: 52:54:00:77:26:2f
+      web:
+        ipv4_address: 10.192.6.17
+        mac_address: 52:54:00:56:30:4f
+    interfaces:
+    - eth1
+    ipv4_address: 10.192.6.3
+service_settings:
+  dns:
+  - 8.8.8.8
+  - 8.8.4.4
+  domain: dev01.kamaji.io
+  end_address: 10.192.6.62
+  lxd_image_url: http://dl.cdn.kamaji.io/fabric/kamaji-wily.tar.gz
+  lxd_image_name: kamaji-wily
+  lxd_remote: images.linuxcontainers.org
+  lxd_user: kamajilxd
+  network_type: flat
+  ntp:
+  - 0.se.pool.ntp.org
+  - 1.se.pool.ntp.org
+  - 2.se.pool.ntp.org
+  proxy:
+    enabled: false
+  ssh_key: ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDFEQq/YKU9sDz9/g61Ysvxc/Y5KNayBidaHHJP6DvraonrqagVQVYUu4cxc1M5X0r9JPcO6HK8W3hWyQ/jmd0tbD00K/G97CxqxJoljZQDZSjoF+6jDgrWEW2ISBLuLUQe3jmE0q2UBam5vclFEhXne4OwJMiVsgm5XwBKFAUTMMfXLptxvWz+olWJiXWMzuk6505obdhYIIF+twdN+1U/R+33zkX9nuQOVoKL7/rEUiFlLy/iet2KebNYLQicusrUn1PXQEa+RUafXS9YuIJN35BUS3zW5WjUX9Y26zSR+BPDJUjc3AxbZlIjDMPzctRzkDs0pphoSTXf50vw0cuB
+    kamaji@kamaji
+  ssh_user: kamaji
+  start_address: 10.192.6.2
+  timezone: Europe/Stockholm
+vagrant: false

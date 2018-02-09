@@ -1,0 +1,88 @@
+# include "/etc/dhcp/ipxe.conf";
+
+option api code 170 = text;
+option api "{{ dynamic['api_url'] }}";
+
+{% if dynamic['server_count'] == 2 %}
+{% if '01' in ansible_hostname %}
+{% set role = 'primary' %}
+{% set peer = 'boot02' %}
+{% else %}
+{% set role = 'secondary' %}
+{% set peer = 'boot01' %}
+{% endif %}
+
+failover peer "dhcp" {
+    {{ role }};
+    address {{ ansible_hostname }}.service.{{ dynamic['service_domain'] }};
+    port 647;
+    peer address {{ peer }}.service.{{ dynamic['service_domain'] }};
+    peer port 647;
+    max-response-delay 30;
+    max-unacked-updates 10;
+    load balance max seconds 3;
+{% if role == 'primary' %}
+    mclt 1800;
+    split 128;
+{% endif %}
+}
+{% endif %}
+
+{% for key, value in dynamic['networks'].iteritems() %}
+
+{% if value['network_type'] == 'compute_network' %}
+# Compute network
+subnet {{ value['subnet'] }} netmask {{ value['netmask'] }} {
+    option routers {{ value['gateway'] }};
+    option domain-name-servers {{ dynamic['nameservers']|join(', ') }};
+{% if dynamic['server_count'] == 1 %}
+    range {{ value['first_address'] }} {{ value['last_address'] }};
+{% elif dynamic['server_count'] == 2 %}
+    pool {
+        failover peer "dhcp";
+        range {{ value['first_address'] }} {{ value['last_address'] }};
+    }
+{% endif %}
+
+    if exists user-class and option user-class = "iPXE" {
+        filename "{{ dynamic['api_url'] }}:8080/compute.ipxe";
+    } else {
+        filename "undionly.kpxe";
+    }
+
+{% for host, details in dynamic['networks'][key]['servers'].iteritems() %}
+    host {{ host }} {
+        hardware ethernet {{ details['mac_address'] }};
+        fixed-address {{ details['ip_address'] }};
+    }
+
+{% endfor %}
+}
+{% elif value['network_type'] == 'controller_network' %}
+# Controller network
+subnet {{ value['subnet'] }} netmask {{ value['netmask'] }} {
+    option routers {{ value['gateway'] }};
+    option domain-name-servers {{ dynamic['nameservers'][0] }};
+{% if dynamic['server_count'] == 1 %}
+    range {{ dynamic['second_controller'] }};
+    default-lease-time 30;
+    max-lease-time 30;
+{% elif dynamic['server_count'] == 2 %}
+    pool {
+        failover peer "dhcp";
+        range {{ dynamic['second_controller'] }};
+        default-lease-time 30;
+        max-lease-time 30;
+    }
+{% endif %}
+
+    if exists user-class and option user-class = "iPXE" {
+        filename "{{ dynamic['api_url'] }}:8080/controller.ipxe";
+    } else {
+        filename "undionly.kpxe";
+    }
+
+}
+{% endif %}
+
+{% endfor %}

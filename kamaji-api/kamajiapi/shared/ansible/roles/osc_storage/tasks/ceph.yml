@@ -1,0 +1,20 @@
+---
+
+- name: copy ceph.conf
+  template:
+    src=ceph.conf.j2
+    dest=/etc/ceph/ceph.conf
+    owner=glance
+    group=cinder
+    mode=0660
+
+- name: configure keyrings
+  template:
+    src=keyring.j2
+    dest=/etc/ceph/ceph.client.{{ item.username }}.keyring
+    owner=glance
+    group=cinder
+    mode=0660
+  with_items:
+    - {username: "{{ dynamic['credentials']['username'] }}", password: "{{ dynamic['credentials']['password'] }}"}
+  when: dynamic['cephx'] == True

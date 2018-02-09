@@ -1,0 +1,27 @@
+{% extends "rest_framework/base.html" %}
+{% load static %}
+
+{% block bootstrap_theme %}
+    <link rel="stylesheet" href="{% static "rest_framework/css/bootstrap.min.css" %}" type="text/css">
+    <link rel="stylesheet" href="{% static "api/css/bootstrap-tweaks.css" %}" type="text/css">
+{% endblock %}
+
+{% block branding %}
+    <a class="navbar-brand" href="/"><img class="logo" src="{% static "api/img/kamaji_logo.png" %}" alt=""></a>
+    <a class="navbar-brand" href="/"></a>
+{% endblock %}
+
+{%  block breadcrumbs %}
+    {{ block.super }}
+
+    {%  if not view.permission_classes %}
+        <br>
+        <div class="alert alert-danger" role="alert">This view has no permission_classes defined! It probably should have.</div>
+    {% endif %}
+
+    {% if request.debug_permission_overridden %}
+        <br>
+        <div class="alert alert-warning" role="alert">You don't have access to see this view, but API debug mode
+            overrides the permission settings. You should probably add this view to the permission system.</div>
+    {%  endif %}
+{% endblock %}

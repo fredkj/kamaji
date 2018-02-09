@@ -1,0 +1,13 @@
+---
+- name: copy ntp configuration
+  template:
+    src=ntp.conf.j2
+    dest=/etc/ntp.conf
+  notify:
+    - restart ntp
+
+- name: make sure ntp is enabled and running
+  service:
+    name=ntpd
+    enabled=yes
+    state=started

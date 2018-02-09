@@ -1,0 +1,38 @@
+---
+
+- name: create user
+  user:
+    name="{{ user.name }}"
+    state=present
+    shell=/bin/bash
+  when: user.state == 'present'
+  tags:
+    - users
+
+# We dont want to remove the account, just lock it
+- name: delete (lock) user
+  command:
+    usermod --shell /usr/sbin/nologin --lock {{ user.name }}
+  when: user.state == 'absent'
+  tags:
+    - users
+
+- name: add user to sudo group
+  user:
+    name="{{ user.name }}"
+    state=present
+    groups="sudo"
+    append="yes"
+  when: user.sudo == True
+  tags:
+    - users
+
+# Ansibles user module cannot delete a specific group
+# Use gpasswd to do it instead.
+- name: remove user from sudo group
+  command:
+    gpasswd -d {{ user.name }} sudo
+  ignore_errors: True
+  when: user.sudo == False
+  tags:
+    - users

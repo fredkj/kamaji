@@ -1,0 +1,9 @@
+---
+
+- include: nfs.yml
+  when: dynamic['storage'] == 'nfs'
+
+- include: ceph.yml
+  when: dynamic['storage'] == 'ceph'
+
+- include: post.yml

@@ -1,0 +1,12 @@
+[ovs]
+local_ip = {{ inventory_hostname }}
+bridge_mappings = provider:br-provider
+
+[agent]
+tunnel_types = gre
+enable_distributed_routing = True
+l2_population = True
+arp_responder = True
+
+[securitygroup]
+firewall_driver = iptables_hybrid

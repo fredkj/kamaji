@@ -1,0 +1,72 @@
+---
+
+- name: check if node is already configured
+  stat:
+    path=/tmp/ansible_conf
+  register: conf
+
+- name: set hostname
+  command:
+    sudo hostname {{ dynamic['hostname'] }}
+  when: not conf.stat.exists
+
+- name: enable provider interface
+  command:
+    sudo ip link set eth1 up
+  when: not conf.stat.exists
+
+- name: set up openvswitch
+  command:
+    "{{ item }}"
+  with_items:
+    - sudo ovs-vsctl add-br br-int
+    - sudo ovs-vsctl add-br br-provider
+    - sudo ovs-vsctl add-port br-provider eth1
+    - sudo ovs-vsctl add-port br-provider phy-br-provider -- set Interface phy-br-provider type=patch options:peer=int-br-provider
+    - sudo ovs-vsctl add-port br-int int-br-provider -- set Interface int-br-provider type=patch options:peer=phy-br-provider
+  when: not conf.stat.exists
+
+- name: check if node supports hardware acceleration for vms
+  command:
+    egrep -c '(vmx|svm)' /proc/cpuinfo
+  register: hw_acc
+  ignore_errors: True
+  when: not conf.stat.exists
+
+- name: write openstack configuration files
+  shell:
+      echo "{{ item.content }}" > {{ item.dest }}
+  with_items:
+    - { content: "{{ lookup('template', '../templates/nova.conf.j2') }}", dest: "/etc/nova/nova.conf" }
+    - { content: "{{ lookup('template', '../templates/neutron.conf.j2') }}", dest: "/etc/neutron/neutron.conf" }
+    - { content: "{{ lookup('template', '../templates/metadata_agent.ini.j2') }}", dest: "/etc/neutron/metadata_agent.ini" }
+    - { content: "{{ lookup('template', '../templates/openvswitch_agent.ini.j2') }}", dest: "/etc/neutron/plugins/ml2/openvswitch_agent.ini" }
+  no_log: True
+  when: not conf.stat.exists
+
+- name: write ceph configuration
+  template:
+    src=ceph.conf.j2
+    dest=/tmp/kamaji-ceph.conf
+  when: not conf.stat.exists
+
+- name: configure ceph on compute node
+  command:
+    sudo /opt/kamaji/bin/ceph.sh {{ dynamic['uuid'] }} {{ dynamic['credentials']['username'] }} {{ dynamic['credentials']['password'] }} {{ dynamic['cluster_name'] }} 1
+  when: not conf.stat.exists
+
+- name: run openstack services
+  command:
+    nohup sudo /usr/bin/{{ item }}
+  with_items:
+    - kamaji-compute
+    - kamaji-metadata-agent
+    - kamaji-l3-agent
+    - kamaji-openvswitch-agent
+  when: not conf.stat.exists
+
+- name: mark node as configured
+  file:
+    path=/tmp/ansible_conf
+    state=touch
+  when: not conf.stat.exists

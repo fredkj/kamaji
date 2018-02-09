@@ -1,0 +1,29 @@
+[DEFAULT]
+default_store = rbd
+[oslo_policy]
+[database]
+connection = mysql+pymysql://{{ dynamic['database']['glance']['username'] }}:{{ dynamic['database']['glance']['password'] }}@db.service.{{ dynamic['service_domain'] }}/glance
+[oslo_concurrency]
+[keystone_authtoken]
+auth_uri = http://keystone.service.{{ dynamic['service_domain'] }}:5000
+auth_url = http://keystoneadmin.service.{{ dynamic['service_domain'] }}:35357
+memcached_servers = memcached.service.{{ dynamic['service_domain'] }}:11211
+auth_plugin = password
+project_domain_name = default
+user_domain_name = default
+project_name = service
+username = {{ dynamic['glance']['username'] }}
+password = {{ dynamic['glance']['password'] }}
+[paste_deploy]
+flavor = keystone
+[store_type_location_strategy]
+[profiler]
+[task]
+[taskflow_executor]
+[glance_store]
+default_store = rbd
+stores = rbd
+rbd_store_pool = {{ dynamic['pools']['image'] }}
+rbd_store_user = {{ dynamic['credentials']['username'] }}
+rbd_store_ceph_conf = /etc/ceph/ceph.conf
+rbd_store_chunk_size = 8

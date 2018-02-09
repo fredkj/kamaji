@@ -1,0 +1,29 @@
+---
+
+- name: copy nfs shares
+  template:
+    src=nfs_shares.j2
+    dest=/etc/cinder/nfs_shares
+    owner=root
+    group=cinder
+    mode=0640
+
+- name: create mount directory for nfs
+  file:
+    state=directory
+    path=/var/lib/glance/mnt
+    owner=glance
+    group=glance
+    mode=0740
+
+- name: add nfs kernel module
+  modprobe:
+    name=nfs
+    state=present
+
+- name: mount nfs shares
+  mount:
+    name=/var/lib/glance/mnt
+    src="{{ dynamic['storage']['shares']['glance'] }}"
+    fstype=nfs
+    state=mounted

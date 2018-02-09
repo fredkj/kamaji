@@ -1,0 +1,92 @@
+#!/usr/bin/env groovy
+
+import groovy.json.JsonOutput
+
+/* Reference the GitLab connection name */
+properties([[$class: 'GitLabConnectionProperty', gitLabConnection: 'gitlab']])
+
+node() {
+    try {
+        /* Notify that the job is starting */
+        notifyBuild('STARTED')
+
+        stage ('Clean workspace') {
+            /* Clean up workspace before bulding */
+            deleteDir()
+        }
+
+        stage ('Checkout source') {
+            /* Represents the SCM configuration in a "Workflow from SCM" project build. */
+            checkout scm
+        }
+
+        gitlabCommitStatus {
+            stage ('Install requirements') {
+                /* Set up a virtual environment for python and install requirements from file. */
+                sh 'virtualenv venv'
+                sh 'venv/bin/pip install --upgrade pip'
+                sh 'venv/bin/pip install -r requirements-tests.txt'
+            }
+                
+            stage ('Run tests') {
+                withEnv(['DJANGO_SETTINGS_MODULE=api.settings.tests']) {
+                    /* Run unit test. */
+                    sh 'venv/bin/python kamajiapi/manage.py jenkins --enable-coverage'
+                }
+            }
+        }
+
+        stage ('Archive artifacts') {
+            /* Get short git commit and save build info into a json file */
+            GIT_SHORT = sh(
+                script: "git rev-parse --short HEAD",
+                returnStdout: true
+            ).trim()
+
+            CURRENT_TIMESTAMP = sh(
+                script: "date +%s",
+                returnStdout: true
+            ).trim()
+
+            BUILD_INFO = JsonOutput.toJson(
+                "git_short": GIT_SHORT,
+                "build_timestamp": CURRENT_TIMESTAMP,
+                "build_node": env.NODE_NAME,
+                "build_id": env.BUILD_ID,
+                "build_name": env.JOB_NAME
+            )
+
+            sh "echo '${BUILD_INFO}' | jq . > kamajiapi/build.json"
+
+            /* Archive artifacts if the build is successful. */
+            archiveArtifacts artifacts: 'kamajiapi/**,requirements*.txt', onlyIfSuccessful: true
+        }
+
+    } catch (exc) {
+        /* Catch exceptions - build failed */
+        currentBuild.result = "FAILED"
+        throw exc
+    } finally {
+        /* Always send a notify */
+        notifyBuild(currentBuild.result)
+    }
+}
+
+def notifyBuild(String buildStatus = 'STARTED') {
+    /* Build status of null means successful */
+    buildStatus =  buildStatus ?: 'SUCCESSFUL'
+
+    def message = "${buildStatus}: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}] (${env.BUILD_URL})'"
+
+    /* Override default values based on build status */
+    if (buildStatus == 'STARTED') {
+        color = 'warning'
+    } else if (buildStatus == 'SUCCESSFUL') {
+        color = 'good'
+    } else {
+        color = 'danger'
+    }
+
+    /* Send notification */
+    slackSend (color: color, message: message)
+}

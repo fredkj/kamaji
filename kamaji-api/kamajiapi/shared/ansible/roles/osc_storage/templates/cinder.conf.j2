@@ -1,0 +1,46 @@
+[DEFAULT]
+rpc_backend = rabbit
+auth_strategy = keystone
+my_ip = {{ inventory_hostname }}
+enabled_backends = ceph
+glance_api_servers = http://glance.service.{{ dynamic['service_domain'] }}:9292
+
+[database]
+connection = mysql+pymysql://{{ dynamic['database']['cinder']['username'] }}:{{ dynamic['database']['cinder']['password'] }}@db.service.{{ dynamic['service_domain'] }}/cinder
+
+[keystone_authtoken]
+auth_uri = http://keystone.service.{{ dynamic['service_domain'] }}:5000
+auth_url = http://keystoneadmin.service.{{ dynamic['service_domain'] }}:35357
+memcached_servers = memcached.service.{{ dynamic['service_domain'] }}:11211
+auth_plugin = password
+project_domain_name = default
+user_domain_name = default
+project_name = service
+username = {{ dynamic['cinder']['username'] }}
+password = {{ dynamic['cinder']['password'] }}
+
+[oslo_messaging_rabbit]
+rabbit_hosts = mq01.service.{{ dynamic['service_domain'] }}:5672,mq02.service.{{ dynamic['service_domain'] }}:5672
+rabbit_userid = {{ dynamic['rabbitmq']['username'] }}
+rabbit_password = {{ dynamic['rabbitmq']['password'] }}
+rabbit_retry_interval = 1
+rabbit_retry_backoff = 2
+rabbit_max_retries = 0
+rabbit_durable_queues = true
+rabbit_ha_queues = true
+
+[oslo_concurrency]
+lock_path = /var/lib/cinder/tmp
+
+[ceph]
+volume_driver = cinder.volume.drivers.rbd.RBDDriver
+rbd_pool = {{ dynamic['pools']['volume'] }}
+rbd_ceph_conf = /etc/ceph/ceph.conf
+rbd_cluster_name = ceph
+rbd_flatten_volume_from_snapshot = false
+rbd_max_clone_depth = 5
+rbd_store_chunk_size = 4
+rados_connect_timeout = -1
+glance_api_version = 2
+rbd_user = {{ dynamic['credentials']['username'] }}
+rbd_secret_uuid = {{ dynamic['uuid'] }}

@@ -1,0 +1,29 @@
+---
+
+- name: configure glance
+  template:
+    src=glance-api.conf.j2
+    dest=/etc/glance/glance-api.conf
+    owner=root
+    group=glance
+    mode=0640
+
+- name: configure cinder
+  template:
+    src=cinder.conf.j2
+    dest=/etc/cinder/cinder.conf
+    owner=root
+    group=cinder
+    mode=0640
+
+- name: enable and start and restart services
+  service:
+    name={{ item }}
+    enabled=yes
+    state=restarted
+  with_items:
+    - glance-api
+    - glance-registry
+    - cinder-volume
+    - cinder-scheduler
+    - cinder-api

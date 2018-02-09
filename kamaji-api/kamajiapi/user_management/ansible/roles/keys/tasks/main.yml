@@ -1,0 +1,10 @@
+---
+
+- name: add/remove user ssh public keys
+  authorized_key:
+    user="{{ user.name }}"
+    key="{{ user.key }}"
+    state=present
+    exclusive=yes
+  tags:
+    - keys

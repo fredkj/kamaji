@@ -1,0 +1,11 @@
+driftfile {{ ntp_driftfile }}
+
+{% for ntp in ntp_servers %}
+server {{ ntp }} iburst
+{% endfor %}
+
+{% if ntp_restrict %}
+{% for restrict in ntp_restrict %}
+restrict {{ restrict }}
+{% endfor %}
+{% endif %}

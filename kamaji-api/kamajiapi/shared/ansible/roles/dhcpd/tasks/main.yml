@@ -1,0 +1,12 @@
+---
+
+- name: copy configurations
+  template:
+    src=dhcpd.conf.j2
+    dest=/etc/dhcp/dhcpd.conf
+    validate="dhcpd -t -cf %s"
+
+- name: restart dhcpd
+  service:
+    name=isc-dhcp-server
+    state=restarted
